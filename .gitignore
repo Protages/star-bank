@@ -1,0 +1,11 @@
+*.log
+local_settings.py
+db.sqlite3
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+.vscode/
+.idea/
+# .env.prod
+# .env.prod.db
