@@ -1,84 +1,80 @@
 from django.shortcuts import render, get_object_or_404
-from rest_framework.views import APIView
+from rest_framework.mixins import  (
+    ListModelMixin, 
+    CreateModelMixin, 
+    RetrieveModelMixin, 
+    UpdateModelMixin,
+    DestroyModelMixin
+)
+from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
 
 from .models import User, AccountTarif
-from .serializers import UserSerializer, AccountTarifSerializer
+from . import serializers
 from .permissions import IsSuperuserOrOwner
 
 
-class UsersCreateListAPI(APIView):
-    authentication_classes = (SessionAuthentication, )
-    permission_classes = (IsAuthenticated, )
+class UsersListCreateAPI(ListModelMixin, CreateModelMixin, GenericAPIView):
+    queryset = User.objects.all().prefetch_related('tarif')
+    serializer_class = serializers.UserCreateUpdateSerializer
 
     def get(self, request, *args, **kwargs):
-        queryset = User.objects.all().select_related('tarif')
-        serializer = UserSerializer(queryset, many=True, context={'request': request})
-
-        return Response(serializer.data)
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = serializers.UserSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = serializers.UserSerializer(queryset, many=True)
+        return Response(serializer.data) 
 
     def post(self, request, *args, **kwargs):
-        serializer = UserSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-
-        return Response(serializer.data)
+        return self.create(request, *args, **kwargs)
 
 
-class UserUpdateRetriveAPI(APIView):
-    authentication_classes = (SessionAuthentication, )
-    permission_classes = (IsAuthenticated, )
-
-    def get(self, request, pk, *args, **kwargs):
-        user = get_object_or_404(User, pk=pk)
-        serializer = UserSerializer(user)
-        return Response(serializer.data)
-
-    def put(self, request, pk, *args, **kwargs):
-        user = get_object_or_404(User, pk=pk)
-        seriaizer = UserSerializer(user, data=request.data, partial=True)
-        seriaizer.is_valid(raise_exception=True)
-        seriaizer.save()
-
-        return Response(seriaizer.data)
-
-    def delete(self, request, pk, *args, **kwargs):
-        user = get_object_or_404(User, pk=pk)
-        user.delete()
-        return Response({'message': 'Пользователь был удален.'})
-
-
-class AccountTarifListCreateAPI(APIView):
-    authentication_classes = (SessionAuthentication, )
-    permission_classes = (IsAuthenticated, )
+class UserRetriveUpdateDeleteAPI(RetrieveModelMixin, 
+                                 UpdateModelMixin, 
+                                 DestroyModelMixin, 
+                                 GenericAPIView):
+    queryset = User.objects.all().select_related('tarif')
+    serializer_class = serializers.UserCreateUpdateSerializer
 
     def get(self, request, *args, **kwargs):
-        queryset = AccountTarif.objects.all()
-        serializer = AccountTarifSerializer(queryset, many=True)
+        instance = self.get_object()
+        serializer = serializers.UserSerializer(instance)
         return Response(serializer.data)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+
+
+class AccountTarifListCreateAPI(ListModelMixin, CreateModelMixin, GenericAPIView):
+    queryset = AccountTarif.objects.all()
+    serializer_class = serializers.AccountTarifSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
-        serializer = AccountTarifSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
+        return self.create(request, *args, **kwargs)
 
 
-class AccountTarifUpdateRetriveAPI(APIView):
-    authentication_classes = (SessionAuthentication, )
-    permission_classes = (IsAuthenticated, )
+class AccountTarifRetriveUpdateDeleteAPI(RetrieveModelMixin, 
+                                         UpdateModelMixin, 
+                                         DestroyModelMixin, 
+                                         GenericAPIView):
+    queryset = AccountTarif.objects.all()
+    serializer_class = serializers.AccountTarifSerializer
 
-    def get(self, request, pk, *args, **kwargs):
-        account_tarif = get_object_or_404(AccountTarif, pk=pk)
-        serializer = AccountTarifSerializer(account_tarif)
-        return Response(serializer.data)
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
 
-    def put(self, request, pk, *args, **kwargs):
-        account_tarif = get_object_or_404(AccountTarif, pk=pk)
-        serializer = AccountTarifSerializer(account_tarif, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
 
-        return Response(serializer.data)
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)

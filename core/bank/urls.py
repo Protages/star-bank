@@ -38,4 +38,32 @@ urlpatterns = [
         views.CashbackRetriveUpdateDeleteAPI.as_view(),
         name='cashback_detail'
     ),
+
+    path('card_type/', views.CardTypeListCreateAPI.as_view(), name='card_type'),
+    path(
+        'card_type/<int:pk>/',
+        views.CardTypeRetriveUpdateDeleteAPI.as_view(),
+        name='card_type_detail'
+    ),
+
+    path('card_design/', views.CardDesignListCreateAPI.as_view(), name='card_design'),
+    path(
+        'card_design/<int:pk>/',
+        views.CardDesignRetriveUpdateDeleteAPI.as_view(),
+        name='card_design_detail'
+    ),
+
+    path('card/', views.CardListCreateAPI.as_view(), name='card'),
+    path(
+        'card/<int:pk>/',
+        views.CardRetriveUpdateDeleteAPI.as_view(),
+        name='card_detail'
+    ),
+
+    path('deposit/', views.DepositListCreateAPI.as_view(), name='deposit'),
+    path(
+        'deposit/<int:pk>/',
+        views.DepositRetriveUpdateDeleteAPI.as_view(),
+        name='deposit_detail'
+    ),
 ]

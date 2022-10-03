@@ -7,12 +7,17 @@ from rest_framework.views import APIView
 class RootAPI(APIView):
     def get(self, request, *args, **kwargs):
         api_mapping = {
+            'swagger-ui': self.get_full_url('swagger-ui'),
             'user': self.get_full_url('user'),
             'account_tarif': self.get_full_url('account_tarif'),
             'bank_account': self.get_full_url('bank_account'),
             'transaction_type': self.get_full_url('transaction_type'),
             'transaction': self.get_full_url('transaction'),
             'cashback': self.get_full_url('cashback'),
+            'card_type': self.get_full_url('card_type'),
+            'card_design': self.get_full_url('card_design'),
+            'card': self.get_full_url('card'),
+            'deposit': self.get_full_url('deposit'),
         }
         return Response(api_mapping)
 

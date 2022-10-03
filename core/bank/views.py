@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404
-from django.db.models.query import QuerySet
+from django.db import transaction
 
+from rest_framework import status
 from rest_framework.views import APIView, Response
 from rest_framework.generics import GenericAPIView
 from rest_framework.mixins import (
@@ -24,32 +25,37 @@ from .models import (
 from . import serializers
 
 
-class BankAccountListCreateAPI(ListModelMixin, CreateModelMixin, GenericAPIView):
-    queryset = BankAccount.objects.all()
+class BankAccountListCreateAPI(ListModelMixin, GenericAPIView):
+    queryset = BankAccount.objects.all().select_related('user')
     serializer_class = serializers.BankAccountSerializer
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
 
 
 class BankAccountRetriveUpdateDeleteAPI(RetrieveModelMixin, 
                                         UpdateModelMixin, 
                                         DestroyModelMixin, 
                                         GenericAPIView):
-    queryset = BankAccount.objects.all()
-    serializer_class = serializers.BankAccountSerializer
+    queryset = BankAccount.objects.all().select_related('user')
+    serializer_class = serializers.BankAccountUpdateSerializer
 
     def get(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
+        instance = self.get_object()
+        serializer = serializers.BankAccountSerializer(instance)
+        return Response(serializer.data)
 
     def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
+        return self.update(request, partial=True, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
-        return self.delete(request, *args, **kwargs)
+        instance = self.get_object()
+        related_obj = instance.get_related_card_or_deposit()
+        with transaction.atomic():
+            related_obj.delete()
+            instance.delete()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class TransactionTypeListCreateAPI(ListModelMixin, CreateModelMixin, GenericAPIView):
@@ -74,10 +80,10 @@ class TransactionTypeRetriveUpdateDeleteAPI(RetrieveModelMixin,
         return self.retrieve(request, *args, **kwargs)
 
     def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
+        return self.update(request, partial=True, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
-        return self.delete(request, *args, **kwargs)
+        return self.destroy(request, *args, **kwargs)
 
 
 class TransactionListCreateAPI(ListModelMixin, CreateModelMixin, GenericAPIView):
@@ -114,10 +120,10 @@ class TransactionRetriveUpdateDeleteAPI(RetrieveModelMixin,
         return Response(serializer.data)
 
     def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
+        return self.update(request, partial=True, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
-        return self.delete(request, *args, **kwargs)
+        return self.destroy(request, *args, **kwargs)
 
 
 class CashbackListCreateAPI(ListModelMixin, CreateModelMixin, GenericAPIView):
@@ -138,9 +144,9 @@ class CashbackListCreateAPI(ListModelMixin, CreateModelMixin, GenericAPIView):
 
 
 class CashbackRetriveUpdateDeleteAPI(RetrieveModelMixin, 
-                              UpdateModelMixin, 
-                              DestroyModelMixin, 
-                              GenericAPIView):
+                                     UpdateModelMixin, 
+                                     DestroyModelMixin, 
+                                     GenericAPIView):
     queryset = Cashback.objects.all().prefetch_related('transaction_type')
     serializer_class = serializers.CashbackCreateUpdateSerializer
 
@@ -150,7 +156,157 @@ class CashbackRetriveUpdateDeleteAPI(RetrieveModelMixin,
         return Response(serializer.data)
 
     def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
+        return self.update(request, partial=True, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
+
+
+class CardTypeListCreateAPI(ListModelMixin, CreateModelMixin, GenericAPIView):
+    queryset = CardType.objects.all()
+    serializer_class = serializers.CardTypeCreateUpdateSerializer
+
+    def get(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = serializers.CardTypeSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = serializers.CardTypeSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+
+class CardTypeRetriveUpdateDeleteAPI(RetrieveModelMixin, 
+                                     UpdateModelMixin, 
+                                     DestroyModelMixin, 
+                                     GenericAPIView):
+    queryset = CardType.objects.all()
+    serializer_class = serializers.CardTypeCreateUpdateSerializer
+
+    def get(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = serializers.CardTypeSerializer(instance)
+        return Response(serializer.data)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, partial=True, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+
+
+class CardDesignListCreateAPI(ListModelMixin, CreateModelMixin, GenericAPIView):
+    queryset = CardDesign.objects.all()
+    serializer_class = serializers.CardDesignSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+
+class CardDesignRetriveUpdateDeleteAPI(RetrieveModelMixin, 
+                                     UpdateModelMixin, 
+                                     DestroyModelMixin, 
+                                     GenericAPIView):
+    queryset = CardDesign.objects.all()
+    serializer_class = serializers.CardDesignSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, partial=True, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+
+
+class CardListCreateAPI(ListModelMixin, CreateModelMixin, GenericAPIView):
+    queryset = Card.objects.all().select_related(
+        'bank_account', 'card_type', 'design'
+    ).prefetch_related('card_type__cashbacks')
+    serializer_class = serializers.CardCreateUpdateSerializer
+
+    def get(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = serializers.CardSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = serializers.CardSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+
+class CardRetriveUpdateDeleteAPI(RetrieveModelMixin, 
+                                 UpdateModelMixin, 
+                                 DestroyModelMixin, 
+                                 GenericAPIView):
+    queryset = Card.objects.all()
+    serializer_class = serializers.CardCreateUpdateSerializer
+
+    def get(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = serializers.CardSerializer(instance)
+        return Response(serializer.data)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, partial=True, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object()
+        bank_account = instance.bank_account
+        with transaction.atomic():
+            instance.delete()
+            bank_account.delete()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class DepositListCreateAPI(ListModelMixin, CreateModelMixin, GenericAPIView):
+    queryset = Deposit.objects.all().select_related('bank_account')
+    serializer_class = serializers.DepositCreateUpdateSerializer
+
+    def get(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = serializers.DepositSeializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = serializers.DepositSeializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+
+class DepositRetriveUpdateDeleteAPI(RetrieveModelMixin, 
+                                    UpdateModelMixin, 
+                                    DestroyModelMixin, 
+                                    GenericAPIView):
+    queryset = Deposit.objects.all()
+    serializer_class = serializers.DepositCreateUpdateSerializer
+
+    def get(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = serializers.DepositSeializer(instance)
+        return Response(serializer.data)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, partial=True, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object()
+        bank_account = instance.bank_account
+        with transaction.atomic():
+            instance.delete()
+            bank_account.delete()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)

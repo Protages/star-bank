@@ -1,13 +1,15 @@
-from datetime import datetime
+from datetime import date
 
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth import get_user_model
+from django.core import exceptions
 
 from .validators import number_validation
 
 
 USER_MODEL = get_user_model()
+DEFAULT_BANK_NAME = 'Star-Bank'
 ALLOWED_CURRENCY = [
     ('RUB', 'Рубль'),
     ('USD', 'Доллар'),
@@ -15,10 +17,10 @@ ALLOWED_CURRENCY = [
 ]
 
 
-def set_completion_data():
-    now = timezone.now()
-    completion_year = 1
-    completion_date = datetime(
+def get_completion_data():
+    now = date.today()
+    completion_year = 3
+    completion_date = date(
         year=now.year + completion_year,
         month=now.month,
         day=now.day
@@ -36,7 +38,9 @@ class BankAccount(models.Model):
     user = models.ForeignKey(
         USER_MODEL, verbose_name='пользователь', on_delete=models.CASCADE
     )
-    bank_name = models.CharField(verbose_name='банк', max_length=128, default='Star-Bank')
+    bank_name = models.CharField(
+        verbose_name='банк', max_length=128, default=DEFAULT_BANK_NAME
+    )
 
     class Meta:
         verbose_name = 'счет'
@@ -44,6 +48,14 @@ class BankAccount(models.Model):
 
     def __str__(self):
         return f'{self.number} - {self.user}'
+
+    def get_related_card_or_deposit(self):
+        related_obj = getattr(self, 'card', getattr(self, 'deposit', None))
+        if related_obj is None:
+            raise exceptions.ObjectDoesNotExist(
+                f'У объекта BankAccount {self.pk} нет связанного Card или Deposit.'
+            )
+        return related_obj
 
 
 class TransactionType(models.Model):
@@ -171,11 +183,11 @@ class Card(models.Model):
     is_push = models.BooleanField(verbose_name='уведомления', default=False)
     date_issue = models.DateField(
         verbose_name='дата создания',
-        auto_now_add=timezone.now
+        default=date.today
     )
     completion_date = models.DateField(
         verbose_name='дата истечения',
-        auto_now_add=set_completion_data
+        default=get_completion_data
     )
     design = models.ForeignKey(
         CardDesign,
@@ -209,11 +221,11 @@ class Deposit(models.Model):
     )
     date_issue = models.DateField(
         verbose_name='дата создания', 
-        auto_now_add=timezone.now
+        default=date.today
     )
     completion_date = models.DateField(
         verbose_name='дата истечения',
-        auto_now_add=set_completion_data
+        default=get_completion_data
     )
     
     class Meta:
