@@ -1,3 +1,4 @@
+from typing import Iterable
 from rest_framework import serializers
 from rest_framework.validators import ValidationError
 # from django.db.models.fields.related_descriptors
@@ -37,6 +38,8 @@ class CustomRelatedField(serializers.RelatedField):
 
 class CustomManyRelatedField(CustomRelatedField):
     def to_internal_value(self, data):
+        if not isinstance(data, Iterable):
+            raise ValidationError('Необходимо передать список.')
         try:
             related_obj_list = []
             for pk_value in list(data):
@@ -49,4 +52,5 @@ class CustomManyRelatedField(CustomRelatedField):
 
     def to_representation(self, manager):  # manager - ManyRelatedManager (django.db.models.fields.related_descriptors)
         queryset = manager.get_queryset()
-        return self.model_serializer(many=True).to_representation(queryset)
+        return [getattr(obj, self.lookup_field) for obj in queryset]
+        # return self.model_serializer(many=True).to_representation(queryset)

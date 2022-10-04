@@ -2,7 +2,8 @@ name: Django CI
 
 on:
   push:
-    branches: [ "develop" ]
+    branches:
+      - develop
 
 jobs:
 
@@ -26,4 +27,4 @@ jobs:
     - name: Run Tests
       run: |
         cd core
-        python manage.py test
+        python manage.py test --verbosity 2

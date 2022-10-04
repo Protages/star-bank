@@ -52,7 +52,7 @@ class BankAccountSerializer(CustomSerializer):
         ]
     )
     user = UserDepthSerializer()
-    bank_name = serializers.CharField(required=False)
+    bank_name = serializers.CharField(max_length=128, required=False)
 
     def get_model(self):
         return BankAccount
@@ -68,7 +68,7 @@ class BankAccountUpdateSerializer(BankAccountSerializer):
 
 class TransactionTypeSerializer(CustomSerializer):
     id = serializers.IntegerField(read_only=True)
-    title = serializers.CharField()
+    title = serializers.CharField(max_length=128)
 
     def get_model(self):
         return TransactionType
@@ -79,7 +79,7 @@ class TransactionSerializer(CustomSerializer):
     from_number = BankAccountDepthSerializer()
     to_number = BankAccountDepthSerializer()
     money = serializers.FloatField(min_value=0.1)
-    currency = serializers.ChoiceField(choices=ALLOWED_CURRENCY)
+    currency = serializers.ChoiceField(required=False, choices=ALLOWED_CURRENCY)
     date = serializers.DateTimeField(read_only=True)
     transaction_type = TransactionTypeSerializer()
 
@@ -95,8 +95,8 @@ class TransactionCreateUpdateSerializer(TransactionSerializer):
 
 class CashbackSerializer(CustomSerializer):
     id = serializers.IntegerField(read_only=True)
-    title = serializers.CharField()
-    percent = serializers.IntegerField(min_value=0)
+    title = serializers.CharField(max_length=128)
+    percent = serializers.IntegerField(min_value=0, max_value=100)
     transaction_type = TransactionTypeSerializer(many=True)
 
     def get_model(self):
@@ -130,7 +130,7 @@ class CashbackCreateUpdateSerializer(CashbackSerializer):
 
 class CardTypeSerializer(CustomSerializer):
     id = serializers.IntegerField(read_only=True)
-    title = serializers.CharField()
+    title = serializers.CharField(max_length=128)
     push_price = serializers.IntegerField(min_value=0)
     service_price = serializers.IntegerField(min_value=0)
     cashbacks = CashbackDepthSerializer(many=True)
@@ -166,10 +166,10 @@ class CardTypeCreateUpdateSerializer(CardTypeSerializer):
 
 class CardDesignSerializer(CustomSerializer):
     id = serializers.IntegerField(read_only=True)
-    title = serializers.CharField()
-    author = serializers.CharField(required=False)
+    title = serializers.CharField(max_length=128)
+    author = serializers.CharField(max_length=128, required=False)
     description = serializers.CharField(required=False)
-    example = serializers.CharField(required=False)
+    example = serializers.CharField(max_length=128, required=False)
 
     def get_model(self):
         return CardDesign
@@ -194,7 +194,6 @@ class CardCreateUpdateSerializer(BankAccountSerializerMixin, CardSerializer):
     card_type = CustomRelatedField(model=CardType)
     design = CustomRelatedField(model=CardDesign)
     
-
 
 class DepositSeializer(CustomSerializer):
     id = serializers.IntegerField(read_only=True)
