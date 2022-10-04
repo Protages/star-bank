@@ -29,11 +29,11 @@ class CustomSerializer(serializers.Serializer):
 
 class AccountTarifSerializer(CustomSerializer):
     id = serializers.IntegerField(read_only=True)
-    title = serializers.CharField()
-    monthly_price = serializers.IntegerField(required=False)
-    transfer_limit = serializers.IntegerField(required=False)
+    title = serializers.CharField(max_length=128)
+    monthly_price = serializers.IntegerField(required=False, min_value=0)
+    transfer_limit = serializers.IntegerField(required=False, min_value=0)
     free_card_maintenance = serializers.BooleanField(required=False)
-    additional_interest_rate = serializers.FloatField(required=False)
+    additional_interest_rate = serializers.FloatField(required=False, min_value=0)
 
     def get_model(self):
         return AccountTarif
@@ -44,7 +44,8 @@ class UserSerializer(CustomSerializer):
     username = serializers.CharField(
         validators=[
             UniqueValidator(User.objects.all(), message='Такое имя уже зарегестрировано.')
-        ]
+        ],
+        max_length=128
     )
     email = serializers.EmailField(
         validators=[
