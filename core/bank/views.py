@@ -38,7 +38,7 @@ class BankAccountRetriveUpdateDeleteAPI(RetrieveModelMixin,
                                         DestroyModelMixin, 
                                         GenericAPIView):
     queryset = BankAccount.objects.all().select_related('user')
-    serializer_class = serializers.BankAccountUpdateSerializer
+    serializer_class = serializers.BankAccountCreateUpdateSerializer
 
     def get(self, request, *args, **kwargs):
         instance = self.get_object()

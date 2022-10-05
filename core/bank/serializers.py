@@ -62,8 +62,8 @@ class BankAccountDepthSerializer(BankAccountSerializer):  # For related field in
     user = serializers.PrimaryKeyRelatedField(read_only=True)
 
 
-class BankAccountUpdateSerializer(BankAccountSerializer):
-    user = CustomRelatedField(model=USER_MODEL)
+class BankAccountCreateUpdateSerializer(BankAccountSerializer):
+    user = CustomRelatedField(model=USER_MODEL, model_serializer=UserDepthSerializer)
 
 
 class TransactionTypeSerializer(CustomSerializer):
@@ -88,9 +88,12 @@ class TransactionSerializer(CustomSerializer):
 
 
 class TransactionCreateUpdateSerializer(TransactionSerializer):
-    from_number = CustomRelatedField(model=BankAccount)
-    to_number = CustomRelatedField(model=BankAccount)
-    transaction_type = CustomRelatedField(model=TransactionType)
+    from_number = CustomRelatedField(model=BankAccount, model_serializer=BankAccountDepthSerializer)
+    to_number = CustomRelatedField(model=BankAccount, model_serializer=BankAccountDepthSerializer)
+    transaction_type = CustomRelatedField(
+        model=TransactionType, 
+        model_serializer=TransactionTypeSerializer
+    )
 
 
 class CashbackSerializer(CustomSerializer):
@@ -191,8 +194,8 @@ class CardSerializer(CustomSerializer):
 
 
 class CardCreateUpdateSerializer(BankAccountSerializerMixin, CardSerializer):
-    card_type = CustomRelatedField(model=CardType)
-    design = CustomRelatedField(model=CardDesign)
+    card_type = CustomRelatedField(model=CardType, model_serializer=CardTypeDepthSerializer)
+    design = CustomRelatedField(model=CardDesign, model_serializer=CardDesignSerializer)
     
 
 class DepositSeializer(CustomSerializer):

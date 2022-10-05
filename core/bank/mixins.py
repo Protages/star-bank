@@ -4,6 +4,7 @@ from django.db import transaction
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
+from user.serializers import UserDepthSerializer
 from .models import BankAccount, DEFAULT_BANK_NAME
 from .fields import CustomRelatedField
 from .validators import number_validation
@@ -22,7 +23,7 @@ class BankAccountSerializerMixin(serializers.Serializer):
         ],
         write_only=True
     )
-    user = CustomRelatedField(model=USER_MODEL, write_only=True)
+    user = CustomRelatedField(model=USER_MODEL, model_serializer=UserDepthSerializer, write_only=True)
     bank_name = serializers.CharField(
         default=DEFAULT_BANK_NAME, 
         max_length=128,

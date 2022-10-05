@@ -7,7 +7,8 @@ from rest_framework.validators import ValidationError
 class CustomRelatedField(serializers.RelatedField):
     """ Кастомное поле, призванное избежать чрезмерного кол-ва запросов в бд.
     В качестве входных значений принимает число.
-    Необходимо передать model=..., поиск осуществляется по полю lookup_field='pk'.
+    Необходимо передать model и modle_serializer.
+    Поиск осуществляется по полю lookup_field='pk'.
     Если передается many=True, необходимо будет передать model_serializer.
     Встроенная валидации на существование объекта в бд. """
     
@@ -16,14 +17,14 @@ class CustomRelatedField(serializers.RelatedField):
             return CustomManyRelatedField(*args, **kwargs)
         return super().__new__(cls, *args, **kwargs)
 
-    def __init__(self, model, lookup_field='pk', model_serializer=None, **kwargs):
+    def __init__(self, model, model_serializer, lookup_field='pk', **kwargs):
         self.model = model
         self.lookup_field = lookup_field
         self.model_serializer = model_serializer
         super().__init__(**kwargs)
 
     def to_representation(self, value):
-        return getattr(value, self.lookup_field)
+        return self.model_serializer().to_representation(value)
 
     def to_internal_value(self, data):
         try:
@@ -52,5 +53,5 @@ class CustomManyRelatedField(CustomRelatedField):
 
     def to_representation(self, manager):  # manager - ManyRelatedManager (django.db.models.fields.related_descriptors)
         queryset = manager.get_queryset()
-        return [getattr(obj, self.lookup_field) for obj in queryset]
-        # return self.model_serializer(many=True).to_representation(queryset)
+        # return [getattr(obj, self.lookup_field) for obj in queryset]
+        return self.model_serializer(many=True).to_representation(queryset)
