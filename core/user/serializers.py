@@ -77,5 +77,5 @@ class UserDepthSerializer(UserSerializer):
 
 
 class UserCreateUpdateSerializer(UserSerializer):
-    tarif = CustomRelatedField(model=AccountTarif)
+    tarif = CustomRelatedField(model=AccountTarif, model_serializer=AccountTarifSerializer)
     

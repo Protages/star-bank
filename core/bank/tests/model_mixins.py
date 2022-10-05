@@ -104,9 +104,9 @@ class UserSetUpMixin(AccountTarifSetUpMixin):
             'tarif': self.account_tarif_2.pk
         }
         self.user_invalid_data_1 = {
-            'username': 'User 11',  # invalid uniqe
-            'email': 'user_11@gmail.com',  # invalid uniqe
-            'phone': '+79000000011',  # invalid uniqe
+            'username': 'User 1',  # invalid uniqe
+            'email': 'user_1@gmail.com',  # invalid uniqe
+            'phone': '+79000000001',  # invalid uniqe
             'password': '123',  # invalid
             'tarif': [self.account_tarif_1.pk, self.account_tarif_2.pk]  # invalid
         }
@@ -132,6 +132,9 @@ class TransactionTypeSetUpMixin(UserSetUpMixin):
         self.transaction_type_valid_data = {
             'title': 'Transaction type 11'
         }
+        self.transaction_type_update_data = {
+            'title': 'Transaction type 999'
+        }
         self.transaction_type_invalid_data_1 = {
             'title': 'abcd'*50  # invalid
         }
@@ -153,6 +156,11 @@ class CashbackSetUpMixin(TransactionTypeSetUpMixin):
             'title': 'Cashback 11',
             'percent': 10,
             'transaction_type': [self.transaction_type_1.pk, self.transaction_type_2.pk]
+        }
+        self.cashback_update_data = {
+            'title': 'Cashback 22',
+            'percent': 15,
+            'transaction_type': [self.transaction_type_1.pk]
         }
         self.cashback_invalid_data_1 = {
             'title': 'abcd'*50,  # invalid
@@ -192,6 +200,12 @@ class CardTypeSetUpMixin(CashbackSetUpMixin):
             'service_price': 100,
             'cashbacks': [self.cashback_1.pk, self.cashback_2.pk]
         }
+        self.card_type_update_data = {
+            'title': 'Card type 99',
+            'push_price': 200,
+            'service_price': 200,
+            'cashbacks': [self.cashback_1.pk]
+        }
         self.card_type_invalid_data_1 = {
             'title': 'abcd'*50,  # invalid
             'push_price': -100,  # invalid
@@ -229,6 +243,12 @@ class CardDesignSetUpMixin(CardTypeSetUpMixin):
             'description': 'abcd'*50,
             'example': 'Example 1'
         }
+        self.card_design_update_data = {
+            'title': 'Card desing 99',
+            'author': 'Author 99',
+            'description': 'aaa'*50,
+            'example': 'Example 99'
+        }
         self.card_design_invalid_data_1 = {
             'title': 'abcd'*50,  # invalid
             'author': 'abcd'*50,  # invalid
@@ -262,18 +282,18 @@ class BankAccountSetUpMixin(CardDesignSetUpMixin):
             bank_name='Bank 4'
         )
 
-        self.bank_account_for_update = BankAccount.objects.create(
-            number='00000000000000000099',
-            user=self.user_1,
-            bank_name='Bank 11'
-        )
         self.bank_account_valid_data = {
             'number': '00000000000000000100',
-            'user': self.user_2.pk,
+            'user': self.user_1.pk,
             'bank_name': 'Bank 22'
         }
+        self.bank_account_update_data = {
+            'number': '00000000000000000099',
+            'user': self.user_2.pk,
+            'bank_name': 'Bank 11'
+        }
         self.bank_account_invalid_data_1 = {
-            'number': '00000000000000000011',  # invalid uniqe
+            'number': '00000000000000000022',  # invalid uniqe
             'user': [self.user_1.pk, self.user_2.pk],  # invalid
             'bank_name': 'abcd'*50  # invalid
         }
@@ -310,6 +330,16 @@ class CardSetUpMixin(BankAccountSetUpMixin):
             'is_push': False,
             'design': self.card_design_1.pk
         }
+        self.card_update_data = {
+            'number': '00000000000000000888',
+            'user': self.user_2.pk,
+            'bank_name': 'Bank 11',
+            'currency': 'EUR',
+            'money': 20000.5,
+            'card_type': self.card_type_2.pk,
+            'is_push': True,
+            'design': self.card_design_2.pk
+        }
         self.card_invalid_data_1 = {
             'number': '00000000000000000011',  # invalid uniqe
             'user': [self.user_1.pk, self.user_2.pk],  # invalid
@@ -318,7 +348,7 @@ class CardSetUpMixin(BankAccountSetUpMixin):
             'money': 'abcd',  # invalid
             'card_type': [self.card_type_1.pk, self.card_type_2.pk],  # invalid
             'is_push': 'abcd',  # invalid
-            'design': [self.card_design_1.pk, self.card_design_2]  # invalid
+            'design': [self.card_design_1.pk, self.card_design_2.pk]  # invalid
         }
 
 
@@ -349,8 +379,19 @@ class DepositSetUpMixin(CardSetUpMixin):
             'bank_name': 'Bank 11',
             'currency': 'RUB',
             'money': 10000.5,
+            'interest_rate': 1.0,
             'min_value': 1000,
             'max_value': 100000
+        }
+        self.deposit_update_data = {
+            'number': '00000000000000000777',
+            'user': self.user_2.pk,
+            'bank_name': 'Bank 22',
+            'currency': 'EUR',
+            'money': 20000.5,
+            'interest_rate': 10.0,
+            'min_value': 2000,
+            'max_value': 200000
         }
         self.deposit_invalid_data_1 = {
             'number': '00000000000000000011',  # invalid uniqe
@@ -358,6 +399,7 @@ class DepositSetUpMixin(CardSetUpMixin):
             'bank_name': 'abcd'*50,  # invalid
             'currency': 'GB',  # invalid
             'money': 'abcd',  # invalid
+            'interest_rate': -10.0,  # invalid
             'min_value': -1000,  # invalid
             'max_value': -100000  # invalid
         }
@@ -367,6 +409,7 @@ class DepositSetUpMixin(CardSetUpMixin):
             'bank_name': 'abcd'*50,  # invalid
             'currency': 'GB',  # invalid
             'money': 'abcd',  # invalid
+            'interest_rate': -1.0,  # invalid
             'min_value': 'abcd',  # invalid
             'max_value': 'abcd'  # invalid
         }
@@ -398,9 +441,16 @@ class TransactionSetUpMixin(DepositSetUpMixin):
             'currency': 'RUB',
             'transaction_type': self.transaction_type_1.pk
         }
+        self.transaction_update_data = {
+            'from_number': self.bank_account_3.pk,
+            'to_number': self.bank_account_4.pk,
+            'money': 2000,
+            'currency': 'EUR',
+            'transaction_type': self.transaction_type_2.pk
+        }
         self.transaction_invalid_data_1 = {
-            'from_number': [self.bank_account_1.pk, self.bank_account_3],  # invalid
-            'to_number': [self.bank_account_2.pk, self.bank_account_4],  # invalid
+            'from_number': [self.bank_account_1.pk, self.bank_account_3.pk],  # invalid
+            'to_number': [self.bank_account_2.pk, self.bank_account_4.pk],  # invalid
             'money': -1000,  # invalid
             'currency': 'GB',  # invalid
             'transaction_type': [self.transaction_type_1.pk, self.transaction_type_2.pk]  # invalid
