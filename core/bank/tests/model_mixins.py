@@ -144,11 +144,11 @@ class CashbackSetUpMixin(TransactionTypeSetUpMixin):
     def setUp(self):
         super().setUp()
 
-        self.cashback_1 = Cashback.objects.create(title='Cashback 1', percent=1.0)
+        self.cashback_1 = Cashback.objects.create(title='Cashback 1', percent=1)
         self.cashback_1.transaction_type.add(self.transaction_type_1)
         self.cashback_1.save()
 
-        self.cashback_2 = Cashback.objects.create(title='Cashback 2', percent=2.0)
+        self.cashback_2 = Cashback.objects.create(title='Cashback 2', percent=2)
         self.cashback_2.transaction_type.add(self.transaction_type_2)
         self.cashback_2.save()
 
@@ -454,6 +454,13 @@ class TransactionSetUpMixin(DepositSetUpMixin):
             'money': -1000,  # invalid
             'currency': 'GB',  # invalid
             'transaction_type': [self.transaction_type_1.pk, self.transaction_type_2.pk]  # invalid
+        }
+        self.transaction_invalid_data_2 = {
+            'from_number': self.bank_account_1.pk,
+            'to_number': self.bank_account_2.pk,
+            'money': 99999999,  # invalid not enough money
+            'currency': 'EUR',  # invalid with another currency
+            'transaction_type': self.transaction_type_1.pk
         }
 
 

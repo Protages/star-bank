@@ -1,3 +1,5 @@
+from django.core.cache import cache
+
 from rest_framework.test import APITestCase
 
 from user.serializers import AccountTarifSerializer, UserCreateUpdateSerializer
@@ -301,3 +303,45 @@ class TransactionSerializerTest(TransactionSetUpMixin, APITestCase):
             list(serializer.errors.keys()), 
             ['from_number', 'to_number', 'money', 'currency', 'transaction_type']
         )
+
+    def test_transaction_change_money_serializer(self): 
+        from_number = BankAccount.objects.get(pk=self.transaction_valid_data['from_number'])
+        to_number = BankAccount.objects.get(pk=self.transaction_valid_data['to_number'])
+        from_obj = from_number.get_related_card_or_deposit()
+        to_obj = to_number.get_related_card_or_deposit()
+        from_obj_old_money = from_obj.money
+        to_obj_old_money = to_obj.money
+
+        serializer = TransactionCreateUpdateSerializer(data=self.transaction_valid_data)
+        self.assertEqual(serializer.is_valid(), True)
+        serializer.save()
+
+        from_obj.refresh_from_db() 
+        to_obj.refresh_from_db()
+        
+        self.assertEqual(from_obj.money, from_obj_old_money - self.transaction_valid_data['money'])
+        self.assertEqual(to_obj.money, to_obj_old_money + self.transaction_valid_data['money'])
+
+    def test_transaction_change_money_invalid_serializer(self):
+        serializer = TransactionCreateUpdateSerializer(data=self.transaction_invalid_data_2)
+        
+        self.assertEqual(serializer.is_valid(), False)
+        self.assertListEqual(list(serializer.errors.keys()), ['from_number', 'to_number'])
+        self.assertEqual(len(serializer.errors['from_number']), 2)
+        self.assertEqual(len(serializer.errors['to_number']), 1)
+
+    def test_transaction_cashback_money_serializer(self):
+        from_number = BankAccount.objects.get(pk=self.transaction_valid_data['from_number'])
+        from_obj = from_number.get_related_card_or_deposit()
+        percent = self.cashback_1.percent
+        cashback_money_obj_old = from_obj.cashback_money
+        cashback_money = int(self.transaction_valid_data['money'] * (percent / 100))
+        
+        serializer = TransactionCreateUpdateSerializer(data=self.transaction_valid_data)
+        self.assertEqual(serializer.is_valid(), True)
+        serializer.save()
+
+        from_obj.refresh_from_db()
+
+        self.assertEqual(from_obj.cashback_money, cashback_money_obj_old + cashback_money)
+        self.assertEqual(serializer.instance.cashback_money, cashback_money)

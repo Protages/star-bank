@@ -1,5 +1,3 @@
-import math
-
 from django.contrib.auth import get_user_model
 from django.db import transaction
 
@@ -82,6 +80,7 @@ class TransactionSerializer(CustomSerializer):
     currency = serializers.ChoiceField(required=False, choices=ALLOWED_CURRENCY)
     date = serializers.DateTimeField(read_only=True)
     transaction_type = TransactionTypeSerializer()
+    cashback_money = serializers.IntegerField(read_only=True)
 
     def get_model(self):
         return Transaction
@@ -95,6 +94,99 @@ class TransactionCreateUpdateSerializer(TransactionSerializer):
         model_serializer=TransactionTypeSerializer
     )
 
+    def validate(self, data):
+        self.transaction_errors = {}
+        from_number = data.get('from_number')
+        to_number = data.get('to_number')
+
+        if from_number == to_number:
+            raise ValidationError('Счета from_number и to_number должны быть разными.')
+
+        currency = data.get('currency', 'RUB')
+        money = data.get('money')
+
+        self.valid_enough_money(from_number, money)
+        self.valid_correct_currency(from_number, to_number, currency)
+
+        if len(self.transaction_errors) != 0:
+            raise ValidationError(self.transaction_errors)
+
+        return data
+
+    def valid_enough_money(self, from_number, money):
+        from_obj = from_number.get_related_card_or_deposit()
+
+        if not from_obj.money >= money:
+            obj_type = 'карты' if isinstance(from_obj, Card) else 'депозита'
+            if not 'from_number' in self.transaction_errors.keys():
+                self.transaction_errors['from_number'] = []
+
+            self.transaction_errors['from_number'].append(
+                f'У {obj_type} {from_number.number} недостаточно средств.'
+            )
+
+    def valid_correct_currency(self, from_number, to_number, currency):
+        from_obj = from_number.get_related_card_or_deposit()
+        to_obj = to_number.get_related_card_or_deposit()
+
+        if from_obj.currency != currency:
+            obj_type = 'карты' if isinstance(from_obj, Card) else 'депозита'
+            if not 'from_number' in self.transaction_errors.keys():
+                self.transaction_errors['from_number'] = []
+
+            self.transaction_errors['from_number'].append(
+                f'У {obj_type} {from_number.number} валюта - {from_obj.currency}, у транзакции - {currency}'
+            )
+        
+        if to_obj.currency != currency:
+            obj_type = 'карты' if isinstance(to_obj, Card) else 'депозита'
+            if not 'to_number' in self.transaction_errors.keys():
+                self.transaction_errors['to_number'] = []
+
+            self.transaction_errors['to_number'].append(
+                f'У {obj_type} {to_number.number} валюта - {to_obj.currency}, у транзакции - {currency}'
+            )
+
+    def create(self, validated_data):
+        from_number = validated_data.get('from_number')
+        to_number = validated_data.get('to_number')
+        transaction_type = validated_data.get('transaction_type')
+        money = validated_data.get('money')
+
+        cashback_money = self.calculate_cashback_money(from_number, transaction_type, money)
+
+        with transaction.atomic():
+            from_obj = from_number.get_related_card_or_deposit()
+            to_obj = to_number.get_related_card_or_deposit()
+            from_obj.money -= money
+            to_obj.money += money
+
+            if cashback_money != 0:
+                from_obj.cashback_money += cashback_money
+                validated_data['cashback_money'] = cashback_money
+
+            from_obj.save()
+            to_obj.save()
+
+        return Transaction.objects.create(**validated_data)
+
+    def calculate_cashback_money(self, from_number, transaction_type, money):
+        from_obj = from_number.get_related_card_or_deposit()
+        
+        if not isinstance(from_obj, Card):
+            return 0
+
+        card_type = from_obj.card_type
+        cashbacks = card_type.cashbacks.all()
+        percent = 0
+
+        for cashback in cashbacks:
+            transaction_types = cashback.transaction_type.all()
+            if transaction_type in transaction_types:
+                percent = cashback.percent if cashback.percent > percent else percent
+        
+        return int(money * (percent / 100))
+    
 
 class CashbackSerializer(CustomSerializer):
     id = serializers.IntegerField(read_only=True)
@@ -188,6 +280,7 @@ class CardSerializer(CustomSerializer):
     date_issue = serializers.DateField(read_only=True)
     completion_date = serializers.DateField(read_only=True)
     design = CardDesignSerializer()
+    cashback_money = serializers.IntegerField(read_only=True)
 
     def get_model(self):
         return Card

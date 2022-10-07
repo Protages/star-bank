@@ -152,3 +152,10 @@ INTERNAL_IPS = [
 ]
 
 PHONENUMBER_DEFAULT_REGION = 'RU'
+
+
+CACHES = {
+    'default': {
+         'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+     }
+}

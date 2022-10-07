@@ -97,6 +97,7 @@ class Transaction(models.Model):
         verbose_name='тип',
         on_delete=models.CASCADE
     )
+    cashback_money = models.IntegerField(verbose_name='Сумма кэшбэка', blank=True, default=0)
 
     class Meta:
         verbose_name = 'транзакция'
@@ -195,6 +196,7 @@ class Card(models.Model):
         on_delete=models.SET_NULL,
         blank=True, null=True
     )
+    cashback_money = models.IntegerField(verbose_name='Сумма кэшбэка', blank=True, default=0)
     
     class Meta:
         verbose_name = 'карта'
