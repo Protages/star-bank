@@ -50,7 +50,9 @@ urlpatterns = [
     ), name='swagger-ui'),
 
     path('__debug__/', include('debug_toolbar.urls')),
-    path('api/v1/auth/', include('rest_framework.urls')),
+
+    path('api/v1/auth/', include('user.auth_urls')),
+    # path('api/v1/auth/', include('rest_framework.urls')),
 
     path('api/v1/', RootAPI.as_view(), name='root'),
 

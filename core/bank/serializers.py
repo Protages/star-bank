@@ -281,6 +281,7 @@ class CardSerializer(CustomSerializer):
     completion_date = serializers.DateField(read_only=True)
     design = CardDesignSerializer()
     cashback_money = serializers.IntegerField(read_only=True)
+    is_blocked = serializers.BooleanField(required=False)
 
     def get_model(self):
         return Card
