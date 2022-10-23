@@ -1,7 +1,8 @@
 from django.urls import reverse
 
-from rest_framework.test import APITestCase
 from rest_framework import status
+from rest_framework.test import APITestCase
+from rest_framework.authtoken.models import Token
 
 from user.models import AccountTarif, User
 from bank.models import (
@@ -17,7 +18,7 @@ from bank.models import (
 from .model_mixins import *
 
 
-class AccountTarifAPITest(AccountTarifSetUpMixin, APITestCase):
+class AccountTarifAPITest(UserSetUpMixin, APITestCase):
     url = reverse('account_tarif')
     url_detail = reverse('account_tarif_detail', kwargs={'pk': 3})
 
@@ -68,6 +69,7 @@ class UserAPITest(UserSetUpMixin, APITestCase):
         response = self.client.post(self.url, self.user_valid_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response.data.pop('id')
+        response.data.pop('date_joined')
         self.user_valid_data.pop('password')
 
         self.assertEqual(User.objects.count(), count + 1)
@@ -91,6 +93,7 @@ class UserAPITest(UserSetUpMixin, APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         response.data.pop('id')
+        response.data.pop('date_joined')
         self.user_update_data.pop('password')
         self.assertEqual(response.data.pop('tarif')['id'], self.user_update_data.pop('tarif'))
         self.assertEqual(response.data, self.user_update_data)
@@ -575,3 +578,43 @@ class TransactionAPITest(TransactionSetUpMixin, APITestCase):
             list(response.data.keys()), 
             list(self.transaction_invalid_data_1.keys())
         )
+
+    def test_transaction_change_money_api(self):
+        from_number = BankAccount.objects.get(pk=self.transaction_valid_data['from_number'])
+        to_number = BankAccount.objects.get(pk=self.transaction_valid_data['to_number'])
+        from_obj = from_number.get_related_card_or_deposit()
+        to_obj = to_number.get_related_card_or_deposit()
+        from_obj_old_money = from_obj.money
+        to_obj_old_money = to_obj.money
+
+        response = self.client.post(self.url, self.transaction_valid_data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        from_obj.refresh_from_db() 
+        to_obj.refresh_from_db()
+        
+        self.assertEqual(from_obj.money, from_obj_old_money - self.transaction_valid_data['money'])
+        self.assertEqual(to_obj.money, to_obj_old_money + self.transaction_valid_data['money'])
+
+    def test_transaction_change_money_invalid_api(self):
+        response = self.client.post(self.url, self.transaction_invalid_data_2)
+        
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertListEqual(list(response.data.keys()), ['from_number', 'to_number'])
+        self.assertEqual(len(response.data['from_number']), 2)
+        self.assertEqual(len(response.data['to_number']), 1)
+
+    def test_transaction_cashback_money_api(self):
+        from_number = BankAccount.objects.get(pk=self.transaction_valid_data['from_number'])
+        from_obj = from_number.get_related_card_or_deposit()
+        percent = self.cashback_1.percent
+        cashback_money_obj_old = from_obj.cashback_money
+        cashback_money = int(self.transaction_valid_data['money'] * (percent / 100))
+        
+        response = self.client.post(self.url, self.transaction_valid_data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        from_obj.refresh_from_db()
+
+        self.assertEqual(from_obj.cashback_money, cashback_money_obj_old + cashback_money)
+        self.assertEqual(response.data['cashback_money'], cashback_money)

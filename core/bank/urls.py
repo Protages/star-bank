@@ -66,4 +66,14 @@ urlpatterns = [
         views.DepositRetriveUpdateDeleteAPI.as_view(),
         name='deposit_detail'
     ),
+
+    path('user_transaction/', views.UserTransactionListAPI.as_view(), name='my_transaction'),
+    path('user_transaction/<int:user_pk>/', views.UserTransactionListAPI.as_view(), name='user_transaction'),
+
+    path('user_card/', views.UserCardListAPI.as_view(), name='my_card'),
+    path('user_card/<int:user_pk>/', views.UserCardListAPI.as_view(), name='user_card'),
+
+    path('user_deposit/', views.UserDepositListAPI.as_view(), name='my_deposit'),
+    path('user_deposit/<int:user_pk>/', views.UserDepositListAPI.as_view(), name='user_deposit'),
+
 ]

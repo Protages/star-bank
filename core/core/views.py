@@ -18,11 +18,17 @@ class RootAPI(APIView):
             'card_design': self.get_full_url('card_design'),
             'card': self.get_full_url('card'),
             'deposit': self.get_full_url('deposit'),
+            'my_transaction': self.get_full_url('my_transaction'),
+            'user_transaction': self.get_full_url('user_transaction', user_pk=1),
+            'my_card': self.get_full_url('my_card'),
+            'user_card': self.get_full_url('user_card', user_pk=1),
+            'my_deposit': self.get_full_url('my_deposit'),
+            'user_deposit': self.get_full_url('user_deposit', user_pk=1),
         }
         return Response(api_mapping)
 
-    def get_full_url(self, url_name):
+    def get_full_url(self, url_name, **kwargs):
         host = self.request.get_host()
         scheme = self.request.scheme
-        url = reverse(url_name)
+        url = reverse(url_name, kwargs={**kwargs})
         return f'{scheme}://{host}{url}'

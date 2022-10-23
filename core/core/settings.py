@@ -27,6 +27,7 @@ SECRET_KEY = 'django-insecure-ktlla-a0w+vn89--(^z1gi5b@1#ea@9!==-mua!orb8h=$c$!9
 DEBUG = True
 
 ALLOWED_HOSTS = []
+CSRF_TRUSTED_ORIGINS = ['http://localhost:3000']
 
 
 # Application definition
@@ -42,12 +43,15 @@ INSTALLED_APPS = [
     'phonenumber_field',
     'debug_toolbar',
     'rest_framework',
+    'rest_framework.authtoken',
+    'corsheaders',
 
     'user.apps.UserConfig',
     'bank.apps.BankConfig',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     "debug_toolbar.middleware.DebugToolbarMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -141,7 +145,11 @@ AUTH_USER_MODEL = 'user.User'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.BasicAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
+        # 'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
     ],
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
 }
@@ -152,3 +160,20 @@ INTERNAL_IPS = [
 ]
 
 PHONENUMBER_DEFAULT_REGION = 'RU'
+
+
+CACHES = {
+    'default': {
+         'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+     }
+}
+
+ACCESS_CONTROL_ALLOW_ORIGIN = '*'
+
+
+CORS_ALLOW_ALL_ORIGINS = True  
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
+    # 'http://127.0.0.1:3000',
+]
