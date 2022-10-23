@@ -1,3 +1,5 @@
+from rest_framework.authtoken.models import Token
+
 from bank.models import (
     BankAccount,
     TransactionType,
@@ -89,11 +91,19 @@ class UserSetUpMixin(AccountTarifSetUpMixin):
             tarif=self.account_tarif_2
         )
 
+        try:  # Token Authenfication for APITestCase 
+            token = Token.objects.get(user=self.user_1)
+            self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+        except:
+            pass
+
         self.user_valid_data = {
             'username': 'User 11',
             'email': 'user_11@gmail.com',
             'phone': '+79000000011',
             'password': 'user_11_password',
+            'fio': 'Антон Павлович Чехов',
+            'country': 'Чехия',
             'tarif': self.account_tarif_1.pk
         }
         self.user_update_data = {
@@ -101,6 +111,8 @@ class UserSetUpMixin(AccountTarifSetUpMixin):
             'email': 'user_99@gmail.com',
             'phone': '+79000000099',
             'password': 'user_99_password',
+            'fio': 'Федор Михайлович Достоевкий',
+            'country': 'Швейцария',
             'tarif': self.account_tarif_2.pk
         }
         self.user_invalid_data_1 = {

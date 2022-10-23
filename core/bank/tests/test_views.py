@@ -1,7 +1,8 @@
 from django.urls import reverse
 
-from rest_framework.test import APITestCase
 from rest_framework import status
+from rest_framework.test import APITestCase
+from rest_framework.authtoken.models import Token
 
 from user.models import AccountTarif, User
 from bank.models import (
@@ -17,7 +18,7 @@ from bank.models import (
 from .model_mixins import *
 
 
-class AccountTarifAPITest(AccountTarifSetUpMixin, APITestCase):
+class AccountTarifAPITest(UserSetUpMixin, APITestCase):
     url = reverse('account_tarif')
     url_detail = reverse('account_tarif_detail', kwargs={'pk': 3})
 
@@ -68,6 +69,7 @@ class UserAPITest(UserSetUpMixin, APITestCase):
         response = self.client.post(self.url, self.user_valid_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response.data.pop('id')
+        response.data.pop('date_joined')
         self.user_valid_data.pop('password')
 
         self.assertEqual(User.objects.count(), count + 1)
@@ -91,6 +93,7 @@ class UserAPITest(UserSetUpMixin, APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         response.data.pop('id')
+        response.data.pop('date_joined')
         self.user_update_data.pop('password')
         self.assertEqual(response.data.pop('tarif')['id'], self.user_update_data.pop('tarif'))
         self.assertEqual(response.data, self.user_update_data)

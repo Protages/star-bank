@@ -49,7 +49,6 @@ class UserRetriveUpdateDeleteAPI(RetrieveModelMixin,
         return Response(serializer.data)
 
     def put(self, request, *args, **kwargs):
-        print(request.data)
         return self.update(request, partial=True, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
