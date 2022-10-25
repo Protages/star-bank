@@ -1,3 +1,4 @@
+from django.contrib.auth.hashers import make_password
 from rest_framework.authtoken.models import Token
 
 from bank.models import (
@@ -72,11 +73,13 @@ class AccountTarifSetUpMixin(BaseSetUpMixin):
 class UserSetUpMixin(AccountTarifSetUpMixin):
     def setUp(self):
         super().setUp()
+        self.password_1 = make_password('user_1_password')
+        self.password_2 = make_password('user_2_password')
         self.user_1 = User.objects.create(
             username='User 1',
             email='user_1@gmail.com',
+            password=self.password_1,
             phone='+79000000001',
-            password='user_1_password',
             fio='User 1 FIO',
             country='User 1 country',
             tarif=self.account_tarif_1
@@ -84,8 +87,8 @@ class UserSetUpMixin(AccountTarifSetUpMixin):
         self.user_2 = User.objects.create(
             username='User 2',
             email='user_2@gmail.com',
+            password=self.password_2,
             phone='+79000000002',
-            password='user_2_password',
             fio='User 2 FIO',
             country='User 2 country',
             tarif=self.account_tarif_2

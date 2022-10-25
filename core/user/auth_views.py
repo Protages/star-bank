@@ -9,6 +9,7 @@ from rest_framework.authentication import SessionAuthentication
 from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework import status
 from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
 from rest_framework.generics import GenericAPIView
 from rest_framework.authtoken.models import Token
 
@@ -20,7 +21,10 @@ USER_MODEL = get_user_model()
 
 
 class LoginAPIView(APIView):
+    permission_classes = (AllowAny, )
+
     def post(self, request, *args, **kwargs):
+        print(request.data)
         serializer = UserLoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.user
