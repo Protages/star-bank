@@ -3,32 +3,36 @@ from . import views
 
 
 urlpatterns = [
-    path('bank_account/', views.BankAccountListCreateAPI.as_view(), name='bank_account'),
     path(
-        'bank_account/<int:pk>/', 
-        views.BankAccountRetriveUpdateDeleteAPI.as_view(), 
+        'bank_account/',
+        views.BankAccountListCreateAPI.as_view(),
+        name='bank_account'
+    ),
+    path(
+        'bank_account/<int:pk>/',
+        views.BankAccountRetriveUpdateDeleteAPI.as_view(),
         name='bank_account_detail'
     ),
 
     path(
-        'transaction_type/', 
-        views.TransactionTypeListCreateAPI.as_view(), 
+        'transaction_type/',
+        views.TransactionTypeListCreateAPI.as_view(),
         name='transaction_type'
     ),
     path(
-        'transaction_type/<int:pk>/', 
-        views.TransactionTypeRetriveUpdateDeleteAPI.as_view(), 
+        'transaction_type/<int:pk>/',
+        views.TransactionTypeRetriveUpdateDeleteAPI.as_view(),
         name='transaction_type_detail'
     ),
 
     path(
-        'transaction/', 
-        views.TransactionListCreateAPI.as_view(), 
+        'transaction/',
+        views.TransactionListCreateAPI.as_view(),
         name='transaction'
     ),
     path(
-        'transaction/<int:pk>/', 
-        views.TransactionRetriveUpdateDeleteAPI.as_view(), 
+        'transaction/<int:pk>/',
+        views.TransactionRetriveUpdateDeleteAPI.as_view(),
         name='transaction_detail'
     ),
 
@@ -67,13 +71,24 @@ urlpatterns = [
         name='deposit_detail'
     ),
 
-    path('user_transaction/', views.UserTransactionListAPI.as_view(), name='my_transaction'),
-    path('user_transaction/<int:user_pk>/', views.UserTransactionListAPI.as_view(), name='user_transaction'),
+    path(
+        'user_transaction/',
+        views.UserTransactionListAPI.as_view(),
+        name='my_transaction'
+    ),
+    path(
+        'user_transaction/<int:user_pk>/',
+        views.UserTransactionListAPI.as_view(),
+        name='user_transaction'
+    ),
 
     path('user_card/', views.UserCardListAPI.as_view(), name='my_card'),
     path('user_card/<int:user_pk>/', views.UserCardListAPI.as_view(), name='user_card'),
 
     path('user_deposit/', views.UserDepositListAPI.as_view(), name='my_deposit'),
-    path('user_deposit/<int:user_pk>/', views.UserDepositListAPI.as_view(), name='user_deposit'),
-
+    path(
+        'user_deposit/<int:user_pk>/',
+        views.UserDepositListAPI.as_view(),
+        name='user_deposit'
+    ),
 ]

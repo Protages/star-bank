@@ -97,7 +97,11 @@ class Transaction(models.Model):
         verbose_name='тип',
         on_delete=models.CASCADE
     )
-    cashback_money = models.IntegerField(verbose_name='Сумма кэшбэка', blank=True, default=0)
+    cashback_money = models.IntegerField(
+        verbose_name='Сумма кэшбэка',
+        blank=True,
+        default=0
+    )
 
     class Meta:
         verbose_name = 'транзакция'
@@ -146,13 +150,13 @@ class CardDesign(models.Model):
     author = models.CharField(
         verbose_name='автор',
         max_length=128,
-        blank=True, null=True
+        blank=True,
     )
-    description = models.TextField(verbose_name='описание', blank=True, null=True)
+    description = models.TextField(verbose_name='описание', blank=True)
     example = models.CharField(
         verbose_name='пример',
         max_length=128,
-        blank=True, null=True
+        blank=True,
     )
 
     class Meta:
@@ -196,9 +200,17 @@ class Card(models.Model):
         on_delete=models.SET_NULL,
         blank=True, null=True
     )
-    cashback_money = models.IntegerField(verbose_name='сумма кэшбэка', blank=True, default=0)
-    is_blocked = models.BooleanField(verbose_name='заблокирована', blank=True, default=False)   
-    
+    cashback_money = models.IntegerField(
+        verbose_name='сумма кэшбэка',
+        blank=True,
+        default=0
+    )
+    is_blocked = models.BooleanField(
+        verbose_name='заблокирована',
+        blank=True,
+        default=False
+    )
+
     class Meta:
         verbose_name = 'карта'
         verbose_name_plural = 'карты'
@@ -223,14 +235,14 @@ class Deposit(models.Model):
         verbose_name='максимальная сумма', default=100000
     )
     date_issue = models.DateField(
-        verbose_name='дата создания', 
+        verbose_name='дата создания',
         default=date.today
     )
     completion_date = models.DateField(
         verbose_name='дата истечения',
         default=get_completion_data
     )
-    
+
     class Meta:
         verbose_name = 'вклад'
         verbose_name_plural = 'вклады'

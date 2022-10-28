@@ -1,9 +1,9 @@
 from rest_framework.views import Response as RESTResponse
-from core.settings import ACCESS_CONTROL_ALLOW_ORIGIN
+# from core.settings import ACCESS_CONTROL_ALLOW_ORIGIN
 
 
 class Response(RESTResponse):
-    """Custom Response with header 
+    """Custom Response with header
     Access-Control-Allow-Origin = settings.ACCESS_CONTROL_ALLOW_ORIGIN"""
 
     def __init__(self, data=None, status=None,

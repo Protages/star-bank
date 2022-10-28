@@ -28,3 +28,7 @@ jobs:
       run: |
         cd core
         python manage.py test --verbosity 2
+
+    - name: Run Flake8
+      run: |
+        flake8

@@ -1,15 +1,12 @@
-from django.shortcuts import render, get_object_or_404
-from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.contrib.auth import get_user_model
 
 from rest_framework import status
-from rest_framework.views import APIView
 from rest_framework.generics import GenericAPIView
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.mixins import (
-    ListModelMixin, 
-    CreateModelMixin, 
-    RetrieveModelMixin, 
+    ListModelMixin,
+    CreateModelMixin,
+    RetrieveModelMixin,
     UpdateModelMixin,
     DestroyModelMixin
 )
@@ -39,9 +36,9 @@ class BankAccountListCreateAPI(ListModelMixin, GenericAPIView):
         return self.list(request, *args, **kwargs)
 
 
-class BankAccountRetriveUpdateDeleteAPI(RetrieveModelMixin, 
-                                        UpdateModelMixin, 
-                                        DestroyModelMixin, 
+class BankAccountRetriveUpdateDeleteAPI(RetrieveModelMixin,
+                                        UpdateModelMixin,
+                                        DestroyModelMixin,
                                         GenericAPIView):
     queryset = BankAccount.objects.all().select_related('user')
     serializer_class = serializers.BankAccountCreateUpdateSerializer
@@ -75,10 +72,10 @@ class TransactionTypeListCreateAPI(ListModelMixin, CreateModelMixin, GenericAPIV
         return self.create(request, *args, **kwargs)
 
 
-class TransactionTypeRetriveUpdateDeleteAPI(RetrieveModelMixin, 
-                                        UpdateModelMixin, 
-                                        DestroyModelMixin, 
-                                        GenericAPIView):
+class TransactionTypeRetriveUpdateDeleteAPI(RetrieveModelMixin,
+                                            UpdateModelMixin,
+                                            DestroyModelMixin,
+                                            GenericAPIView):
     queryset = TransactionType.objects.all()
     serializer_class = serializers.TransactionTypeSerializer
 
@@ -109,11 +106,11 @@ class TransactionListCreateAPI(ListModelMixin, CreateModelMixin, GenericAPIView)
 
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
-    
 
-class TransactionRetriveUpdateDeleteAPI(RetrieveModelMixin, 
-                                        UpdateModelMixin, 
-                                        DestroyModelMixin, 
+
+class TransactionRetriveUpdateDeleteAPI(RetrieveModelMixin,
+                                        UpdateModelMixin,
+                                        DestroyModelMixin,
                                         GenericAPIView):
     queryset = Transaction.objects.all().select_related(
         'from_number', 'to_number', 'transaction_type'
@@ -149,9 +146,9 @@ class CashbackListCreateAPI(ListModelMixin, CreateModelMixin, GenericAPIView):
         return self.create(request, *args, **kwargs)
 
 
-class CashbackRetriveUpdateDeleteAPI(RetrieveModelMixin, 
-                                     UpdateModelMixin, 
-                                     DestroyModelMixin, 
+class CashbackRetriveUpdateDeleteAPI(RetrieveModelMixin,
+                                     UpdateModelMixin,
+                                     DestroyModelMixin,
                                      GenericAPIView):
     queryset = Cashback.objects.all().prefetch_related('transaction_type')
     serializer_class = serializers.CashbackCreateUpdateSerializer
@@ -185,9 +182,9 @@ class CardTypeListCreateAPI(ListModelMixin, CreateModelMixin, GenericAPIView):
         return self.create(request, *args, **kwargs)
 
 
-class CardTypeRetriveUpdateDeleteAPI(RetrieveModelMixin, 
-                                     UpdateModelMixin, 
-                                     DestroyModelMixin, 
+class CardTypeRetriveUpdateDeleteAPI(RetrieveModelMixin,
+                                     UpdateModelMixin,
+                                     DestroyModelMixin,
                                      GenericAPIView):
     queryset = CardType.objects.all()
     serializer_class = serializers.CardTypeCreateUpdateSerializer
@@ -215,10 +212,10 @@ class CardDesignListCreateAPI(ListModelMixin, CreateModelMixin, GenericAPIView):
         return self.create(request, *args, **kwargs)
 
 
-class CardDesignRetriveUpdateDeleteAPI(RetrieveModelMixin, 
-                                     UpdateModelMixin, 
-                                     DestroyModelMixin, 
-                                     GenericAPIView):
+class CardDesignRetriveUpdateDeleteAPI(RetrieveModelMixin,
+                                       UpdateModelMixin,
+                                       DestroyModelMixin,
+                                       GenericAPIView):
     queryset = CardDesign.objects.all()
     serializer_class = serializers.CardDesignSerializer
 
@@ -251,9 +248,9 @@ class CardListCreateAPI(ListModelMixin, CreateModelMixin, GenericAPIView):
         return self.create(request, *args, **kwargs)
 
 
-class CardRetriveUpdateDeleteAPI(RetrieveModelMixin, 
-                                 UpdateModelMixin, 
-                                 DestroyModelMixin, 
+class CardRetriveUpdateDeleteAPI(RetrieveModelMixin,
+                                 UpdateModelMixin,
+                                 DestroyModelMixin,
                                  GenericAPIView):
     queryset = Card.objects.all()
     serializer_class = serializers.CardCreateUpdateSerializer
@@ -293,9 +290,9 @@ class DepositListCreateAPI(ListModelMixin, CreateModelMixin, GenericAPIView):
         return self.create(request, *args, **kwargs)
 
 
-class DepositRetriveUpdateDeleteAPI(RetrieveModelMixin, 
-                                    UpdateModelMixin, 
-                                    DestroyModelMixin, 
+class DepositRetriveUpdateDeleteAPI(RetrieveModelMixin,
+                                    UpdateModelMixin,
+                                    DestroyModelMixin,
                                     GenericAPIView):
     queryset = Deposit.objects.all()
     serializer_class = serializers.DepositCreateUpdateSerializer
@@ -325,26 +322,25 @@ class UserTransactionListAPI(ListModelMixin, GenericAPIView):
     def get(self, request, user_pk=None, *args, **kwargs):
         if user_pk is None:
             user = request.user
+        elif user_pk == request.user.pk:
+            user = request.user
         else:
             try:
                 user = USER_MODEL.objects.get(pk=user_pk)
             except:
                 return Response(
-                    {'non_field_errors': 'Передан неверный id пользователя.'}, 
+                    {'non_field_errors': 'Передан неверный id пользователя.'},
                     status=status.HTTP_404_NOT_FOUND
                 )
-        queryset_outgoing, queryset_incoming = self.filter_queryset(self.get_queryset(user))
-
-        # page = self.paginate_queryset(queryset)
-        # if page is not None:
-        #     serializer = self.get_serializer(page, many=True)
-        #     return self.get_paginated_response(serializer.data)
+        queryset_outgoing, queryset_incoming = self.filter_queryset(
+            self.get_queryset(user)
+        )
 
         serializer_outgoing = self.get_serializer(queryset_outgoing, many=True)
         serializer_incoming = self.get_serializer(queryset_incoming, many=True)
 
         return Response({
-            'transaction_outgoing': serializer_outgoing.data, 
+            'transaction_outgoing': serializer_outgoing.data,
             'transaction_incoming': serializer_incoming.data
         })
 
@@ -352,12 +348,12 @@ class UserTransactionListAPI(ListModelMixin, GenericAPIView):
         if user is None:
             return None
 
-        transaction_outgoing= []
+        transaction_outgoing = []
         transaction_incoming = []
         bank_accounts = user.bankaccount_set.all().prefetch_related(
-            'transaction_from', 'transaction_from__transaction_type', 
+            'transaction_from', 'transaction_from__transaction_type',
             'transaction_from__from_number', 'transaction_from__to_number',
-            'transaction_to', 'transaction_to__transaction_type', 
+            'transaction_to', 'transaction_to__transaction_type',
             'transaction_to__from_number', 'transaction_to__to_number'
         )
         for bank_account in bank_accounts:
@@ -378,7 +374,7 @@ class UserCardListAPI(ListModelMixin, GenericAPIView):
                 user = USER_MODEL.objects.get(pk=user_pk)
             except:
                 return Response(
-                    {'non_field_errors': 'Передан неверный id пользователя.'}, 
+                    {'non_field_errors': 'Передан неверный id пользователя.'},
                     status=status.HTTP_404_NOT_FOUND
                 )
 
@@ -402,4 +398,6 @@ class UserDepositListAPI(UserCardListAPI):
     serializer_class = serializers.DepositSeializer
 
     def get_queryset(self, user=None):
-        return Deposit.objects.filter(bank_account__user=user).select_related('bank_account')
+        return Deposit.objects.filter(
+            bank_account__user=user
+        ).select_related('bank_account')

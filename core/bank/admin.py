@@ -32,7 +32,7 @@ class CashbackAdmin(admin.ModelAdmin):
 
     def get_transaction_types(self, obj):
         return ', '.join(str(typ) for typ in obj.transaction_type.all())
-    
+
     get_transaction_types.short_description = 'типы транзакций'
 
 
