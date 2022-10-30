@@ -21,12 +21,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-ktlla-a0w+vn89--(^z1gi5b@1#ea@9!==-mua!orb8h=$c$!9'
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG')
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS').split(' ')
 CSRF_TRUSTED_ORIGINS = ['http://localhost:3000']
 
 
@@ -177,3 +177,11 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     # 'http://127.0.0.1:3000',
 ]
+
+# To display debug_toolbar in docker
+def show_toolbar(request):
+    return True
+
+DEBUG_TOOLBAR_CONFIG = {
+    'SHOW_TOOLBAR_CALLBACK': show_toolbar,
+}
