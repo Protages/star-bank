@@ -1,16 +1,8 @@
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_protect
+from django.contrib.auth import login, get_user_model
 
-from django.contrib.auth import login, logout, get_user_model
-from django.contrib.sessions.middleware import SessionMiddleware
-from django.middleware.csrf import get_token
-
-from rest_framework.authentication import SessionAuthentication
-from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
-from rest_framework.generics import GenericAPIView
 from rest_framework.authtoken.models import Token
 
 from bank.response import Response
@@ -24,7 +16,6 @@ class LoginAPIView(APIView):
     permission_classes = (AllowAny, )
 
     def post(self, request, *args, **kwargs):
-        print(request.data)
         serializer = UserLoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.user
@@ -33,7 +24,7 @@ class LoginAPIView(APIView):
             token = Token.objects.get(user=user)
         except:
             return Response(
-                {'non_field_errors': 'Токена для такого пользователя не найдено.'}, 
+                {'non_field_errors': 'Токена для такого пользователя не найдено.'},
                 status=status.HTTP_404_NOT_FOUND
             )
 
@@ -58,7 +49,7 @@ class LoginAPIView(APIView):
 #     def get(self, request, *args, **kwargs):
 #         data = {'get': 'Pass csrftoken save him!'}
 #         return Response(data)
-    
+
 #     @method_decorator(csrf_protect)
 #     def post(self, request, *args, **kwargs):
 #         try:
@@ -82,7 +73,7 @@ class LoginAPIView(APIView):
 #             logout(request)
 #         except:
 #             return Response(
-#                 {'errors': ['We cant logout this user.']}, 
+#                 {'errors': ['We cant logout this user.']},
 #                 status=status.HTTP_400_BAD_REQUEST
 #             )
 

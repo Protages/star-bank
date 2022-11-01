@@ -1,5 +1,3 @@
-from django.core.cache import cache
-
 from rest_framework.test import APITestCase
 
 from user.serializers import AccountTarifSerializer, UserCreateUpdateSerializer
@@ -24,10 +22,21 @@ from bank.models import (
     Card,
     Deposit,
 )
-from .model_mixins import *
+from .model_mixins import (
+    AccountTarifSetUpMixin,
+    UserSetUpMixin,
+    TransactionTypeSetUpMixin,
+    CashbackSetUpMixin,
+    CardTypeSetUpMixin,
+    CardDesignSetUpMixin,
+    BankAccountSetUpMixin,
+    CardSetUpMixin,
+    DepositSetUpMixin,
+    TransactionSetUpMixin,
+)
 
 
-class AccountTarifSerializerTest(AccountTarifSetUpMixin, APITestCase):   
+class AccountTarifSerializerTest(AccountTarifSetUpMixin, APITestCase):
     def test_account_tarif_serializer(self):
         count = AccountTarif.objects.count()
         serializer = AccountTarifSerializer(data=self.account_tarif_valid_data)
@@ -40,9 +49,10 @@ class AccountTarifSerializerTest(AccountTarifSetUpMixin, APITestCase):
         serializer_2 = AccountTarifSerializer(data=self.account_tarif_invalid_data_1)
         self.assertEqual(serializer_2.is_valid(), False)
         self.assertListEqual(
-            list(serializer_2.errors.keys()),
-            ['title', 'monthly_price', 'transfer_limit', 
-            'free_card_maintenance', 'additional_interest_rate']
+            list(serializer_2.errors.keys()), [
+                'title', 'monthly_price', 'transfer_limit',
+                'free_card_maintenance', 'additional_interest_rate'
+            ]
         )
 
 
@@ -56,7 +66,7 @@ class UserSerializerTest(UserSetUpMixin, APITestCase):
         self.assertEqual(User.objects.count(), count + 1)
         self.assertEqual(serializer.instance.tarif, self.account_tarif_1)
         self.assertNotEqual(
-            serializer.validated_data.pop('password'), 
+            serializer.validated_data.pop('password'),
             self.user_valid_data.pop('password')
         )
 
@@ -81,7 +91,7 @@ class UserSerializerTest(UserSetUpMixin, APITestCase):
         serializer = UserCreateUpdateSerializer(data=self.user_valid_data)
         serializer.is_valid()
         serializer.save()
-        
+
         serializer = UserCreateUpdateSerializer(data=self.user_invalid_data_2)
         self.assertEqual(serializer.is_valid(), False)
         self.assertListEqual(
@@ -100,7 +110,9 @@ class TransactionTypeSerializerTest(TransactionTypeSetUpMixin, APITestCase):
         self.assertEqual(TransactionType.objects.count(), count + 1)
 
     def test_transaction_type_invalid_serializer(self):
-        serializer = TransactionTypeSerializer(data=self.transaction_type_invalid_data_1)
+        serializer = TransactionTypeSerializer(
+            data=self.transaction_type_invalid_data_1
+        )
         self.assertEqual(serializer.is_valid(), False)
         self.assertListEqual(list(serializer.errors.keys()), ['title'])
 
@@ -114,7 +126,7 @@ class CashbackSerializerTest(CashbackSetUpMixin, APITestCase):
 
         self.assertEqual(Cashback.objects.count(), count + 1)
         self.assertListEqual(
-            list(serializer.instance.transaction_type.all()), 
+            list(serializer.instance.transaction_type.all()),
             [self.transaction_type_1, self.transaction_type_2]
         )
 
@@ -122,7 +134,7 @@ class CashbackSerializerTest(CashbackSetUpMixin, APITestCase):
         serializer = CashbackCreateUpdateSerializer(data=self.cashback_invalid_data_1)
         self.assertEqual(serializer.is_valid(), False)
         self.assertListEqual(
-            list(serializer.errors.keys()), 
+            list(serializer.errors.keys()),
             ['title', 'percent', 'transaction_type']
         )
 
@@ -130,7 +142,7 @@ class CashbackSerializerTest(CashbackSetUpMixin, APITestCase):
         serializer = CashbackCreateUpdateSerializer(data=self.cashback_invalid_data_2)
         self.assertEqual(serializer.is_valid(), False)
         self.assertListEqual(
-            list(serializer.errors.keys()), 
+            list(serializer.errors.keys()),
             ['percent', 'transaction_type']
         )
 
@@ -144,7 +156,7 @@ class CardTypeSerializerTest(CardTypeSetUpMixin, APITestCase):
 
         self.assertEqual(CardType.objects.count(), count + 1)
         self.assertListEqual(
-            list(serializer.instance.cashbacks.all()), 
+            list(serializer.instance.cashbacks.all()),
             [self.cashback_1, self.cashback_2]
         )
 
@@ -152,7 +164,7 @@ class CardTypeSerializerTest(CardTypeSetUpMixin, APITestCase):
         serializer = CardTypeCreateUpdateSerializer(data=self.card_type_invalid_data_1)
         self.assertEqual(serializer.is_valid(), False)
         self.assertListEqual(
-            list(serializer.errors.keys()), 
+            list(serializer.errors.keys()),
             ['title', 'push_price', 'service_price', 'cashbacks']
         )
 
@@ -174,14 +186,17 @@ class CardDesignSerializerTest(CardDesignSetUpMixin, APITestCase):
         serializer = CardDesignSerializer(data=self.card_design_invalid_data_1)
         self.assertEqual(serializer.is_valid(), False)
         self.assertListEqual(
-            list(serializer.errors.keys()), 
+            list(serializer.errors.keys()),
             ['title', 'author', 'example']
         )
+
 
 class BankAccountSerializerTest(BankAccountSetUpMixin, APITestCase):
     def test_bank_acoount_create_serializer(self):
         count = BankAccount.objects.count()
-        serializer = BankAccountCreateUpdateSerializer(data=self.bank_account_valid_data)
+        serializer = BankAccountCreateUpdateSerializer(
+            data=self.bank_account_valid_data
+        )
         self.assertEqual(serializer.is_valid(raise_exception=True), True)
         serializer.save()
 
@@ -190,7 +205,7 @@ class BankAccountSerializerTest(BankAccountSetUpMixin, APITestCase):
 
     def test_bank_account_update_serializer(self):
         serializer = BankAccountCreateUpdateSerializer(
-            instance=self.bank_account_1, 
+            instance=self.bank_account_1,
             data=self.bank_account_update_data
         )
         self.assertEqual(serializer.is_valid(), True)
@@ -204,12 +219,12 @@ class BankAccountSerializerTest(BankAccountSetUpMixin, APITestCase):
 
     def test_bank_account_invalid_update_serializer(self):
         serializer = BankAccountCreateUpdateSerializer(
-            instance=self.bank_account_1, 
+            instance=self.bank_account_1,
             data=self.bank_account_invalid_data_1
         )
         self.assertEqual(serializer.is_valid(), False)
         self.assertListEqual(
-            list(serializer.errors.keys()), 
+            list(serializer.errors.keys()),
             ['number', 'user', 'bank_name']
         )
 
@@ -226,11 +241,15 @@ class CardSerializerTest(CardSetUpMixin, APITestCase):
         self.assertEqual(BankAccount.objects.count(), bank_account_count + 1)
         self.assertEqual(serializer.instance.card_type, self.card_type_1)
         self.assertEqual(serializer.instance.design, self.card_design_1)
-        self.assertEqual(serializer.validated_data['money'], self.card_valid_data['money'])
+        self.assertEqual(
+            serializer.validated_data['money'], self.card_valid_data['money']
+        )
 
         bank_account = serializer.instance.bank_account
 
-        self.assertEqual(bank_account.get_related_card_or_deposit(), serializer.instance)
+        self.assertEqual(
+            bank_account.get_related_card_or_deposit(), serializer.instance
+        )
         self.assertEqual(bank_account.number, self.card_valid_data['number'])
         self.assertEqual(bank_account.user, self.user_1)
 
@@ -240,8 +259,10 @@ class CardSerializerTest(CardSetUpMixin, APITestCase):
         self.assertEqual(serializer.is_valid(), False)
         self.assertEqual(BankAccount.objects.count(), bank_account_count)
         self.assertListEqual(
-            list(serializer.errors.keys()),
-            ['number', 'user', 'bank_name', 'currency', 'money', 'card_type', 'is_push', 'design']
+            list(serializer.errors.keys()), [
+                'number', 'user', 'bank_name', 'currency',
+                'money', 'card_type', 'is_push', 'design'
+            ]
         )
 
 
@@ -255,11 +276,15 @@ class DepositSerializerTest(DepositSetUpMixin, APITestCase):
 
         self.assertEqual(Deposit.objects.count(), deposit_count + 1)
         self.assertEqual(BankAccount.objects.count(), bank_account_count + 1)
-        self.assertEqual(serializer.validated_data['money'], self.deposit_valid_data['money'])
+        self.assertEqual(
+            serializer.validated_data['money'], self.deposit_valid_data['money']
+        )
 
         bank_account = serializer.instance.bank_account
 
-        self.assertEqual(bank_account.get_related_card_or_deposit(), serializer.instance)
+        self.assertEqual(
+            bank_account.get_related_card_or_deposit(), serializer.instance
+        )
         self.assertEqual(bank_account.number, self.deposit_valid_data['number'])
         self.assertEqual(bank_account.user, self.user_1)
 
@@ -297,15 +322,19 @@ class TransactionSerializerTest(TransactionSetUpMixin, APITestCase):
         self.assertEqual(serializer.instance.transaction_type, self.transaction_type_1)
 
     def test_transaction_create_invalid_serializer(self):
-        serializer = TransactionCreateUpdateSerializer(data=self.transaction_invalid_data_1)
+        serializer = TransactionCreateUpdateSerializer(
+            data=self.transaction_invalid_data_1
+        )
         self.assertEqual(serializer.is_valid(), False)
         self.assertListEqual(
-            list(serializer.errors.keys()), 
+            list(serializer.errors.keys()),
             ['from_number', 'to_number', 'money', 'currency', 'transaction_type']
         )
 
-    def test_transaction_change_money_serializer(self): 
-        from_number = BankAccount.objects.get(pk=self.transaction_valid_data['from_number'])
+    def test_transaction_change_money_serializer(self):
+        from_number = BankAccount.objects.get(
+            pk=self.transaction_valid_data['from_number']
+        )
         to_number = BankAccount.objects.get(pk=self.transaction_valid_data['to_number'])
         from_obj = from_number.get_related_card_or_deposit()
         to_obj = to_number.get_related_card_or_deposit()
@@ -316,32 +345,44 @@ class TransactionSerializerTest(TransactionSetUpMixin, APITestCase):
         self.assertEqual(serializer.is_valid(), True)
         serializer.save()
 
-        from_obj.refresh_from_db() 
+        from_obj.refresh_from_db()
         to_obj.refresh_from_db()
-        
-        self.assertEqual(from_obj.money, from_obj_old_money - self.transaction_valid_data['money'])
-        self.assertEqual(to_obj.money, to_obj_old_money + self.transaction_valid_data['money'])
+
+        self.assertEqual(
+            from_obj.money, from_obj_old_money - self.transaction_valid_data['money']
+        )
+        self.assertEqual(
+            to_obj.money, to_obj_old_money + self.transaction_valid_data['money']
+        )
 
     def test_transaction_change_money_invalid_serializer(self):
-        serializer = TransactionCreateUpdateSerializer(data=self.transaction_invalid_data_2)
-        
+        serializer = TransactionCreateUpdateSerializer(
+            data=self.transaction_invalid_data_2
+        )
+
         self.assertEqual(serializer.is_valid(), False)
-        self.assertListEqual(list(serializer.errors.keys()), ['from_number', 'to_number'])
+        self.assertListEqual(list(serializer.errors.keys()), [
+            'from_number', 'to_number'
+        ])
         self.assertEqual(len(serializer.errors['from_number']), 2)
         self.assertEqual(len(serializer.errors['to_number']), 1)
 
     def test_transaction_cashback_money_serializer(self):
-        from_number = BankAccount.objects.get(pk=self.transaction_valid_data['from_number'])
+        from_number = BankAccount.objects.get(
+            pk=self.transaction_valid_data['from_number']
+        )
         from_obj = from_number.get_related_card_or_deposit()
         percent = self.cashback_1.percent
         cashback_money_obj_old = from_obj.cashback_money
         cashback_money = int(self.transaction_valid_data['money'] * (percent / 100))
-        
+
         serializer = TransactionCreateUpdateSerializer(data=self.transaction_valid_data)
         self.assertEqual(serializer.is_valid(), True)
         serializer.save()
 
         from_obj.refresh_from_db()
 
-        self.assertEqual(from_obj.cashback_money, cashback_money_obj_old + cashback_money)
+        self.assertEqual(
+            from_obj.cashback_money, cashback_money_obj_old + cashback_money
+        )
         self.assertEqual(serializer.instance.cashback_money, cashback_money)

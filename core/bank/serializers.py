@@ -15,9 +15,9 @@ from .models import (
     Card,
     Deposit,
     ALLOWED_CURRENCY,
-    DEFAULT_BANK_NAME
 )
 from .validators import number_validation
+from .custom_serializer import CustomSerializer
 from .fields import CustomRelatedField
 from .mixins import BankAccountSerializerMixin
 
@@ -25,25 +25,11 @@ from .mixins import BankAccountSerializerMixin
 USER_MODEL = get_user_model()
 
 
-class CustomSerializer(serializers.Serializer):
-    def create(self, validated_data):
-        return self.get_model().objects.create(**validated_data)
-
-    def update(self, instance, validated_data):
-        for key, value in validated_data.items():
-            setattr(instance, key, value)
-        instance.save(update_fields=validated_data.keys())
-        return instance
-
-    def get_model(self):
-        raise NotImplementedError('Need to override get_model method.')
-
-
 class BankAccountSerializer(CustomSerializer):
     id = serializers.IntegerField(read_only=True)
     number = serializers.CharField(
         validators=[
-            number_validation, 
+            number_validation,
             UniqueValidator(
                 BankAccount.objects.all(), message='Поле number должно быть уникальным.'
             )
@@ -56,7 +42,8 @@ class BankAccountSerializer(CustomSerializer):
         return BankAccount
 
 
-class BankAccountDepthSerializer(BankAccountSerializer):  # For related field in another serializers
+# For related field in another serializers
+class BankAccountDepthSerializer(BankAccountSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True)
 
 
@@ -87,10 +74,14 @@ class TransactionSerializer(CustomSerializer):
 
 
 class TransactionCreateUpdateSerializer(TransactionSerializer):
-    from_number = CustomRelatedField(model=BankAccount, model_serializer=BankAccountDepthSerializer)
-    to_number = CustomRelatedField(model=BankAccount, model_serializer=BankAccountDepthSerializer)
+    from_number = CustomRelatedField(
+        model=BankAccount, model_serializer=BankAccountDepthSerializer
+    )
+    to_number = CustomRelatedField(
+        model=BankAccount, model_serializer=BankAccountDepthSerializer
+    )
     transaction_type = CustomRelatedField(
-        model=TransactionType, 
+        model=TransactionType,
         model_serializer=TransactionTypeSerializer
     )
 
@@ -118,7 +109,7 @@ class TransactionCreateUpdateSerializer(TransactionSerializer):
 
         if not from_obj.money >= money:
             obj_type = 'карты' if isinstance(from_obj, Card) else 'депозита'
-            if not 'from_number' in self.transaction_errors.keys():
+            if 'from_number' not in self.transaction_errors.keys():
                 self.transaction_errors['from_number'] = []
 
             self.transaction_errors['from_number'].append(
@@ -131,20 +122,22 @@ class TransactionCreateUpdateSerializer(TransactionSerializer):
 
         if from_obj.currency != currency:
             obj_type = 'карты' if isinstance(from_obj, Card) else 'депозита'
-            if not 'from_number' in self.transaction_errors.keys():
+            if 'from_number' not in self.transaction_errors.keys():
                 self.transaction_errors['from_number'] = []
 
             self.transaction_errors['from_number'].append(
-                f'У {obj_type} {from_number.number} валюта - {from_obj.currency}, у транзакции - {currency}'
+                f'У {obj_type} {from_number.number} валюта - {from_obj.currency}, '
+                f'у транзакции - {currency}'
             )
-        
+
         if to_obj.currency != currency:
             obj_type = 'карты' if isinstance(to_obj, Card) else 'депозита'
-            if not 'to_number' in self.transaction_errors.keys():
+            if 'to_number' not in self.transaction_errors.keys():
                 self.transaction_errors['to_number'] = []
 
             self.transaction_errors['to_number'].append(
-                f'У {obj_type} {to_number.number} валюта - {to_obj.currency}, у транзакции - {currency}'
+                f'У {obj_type} {to_number.number} валюта - {to_obj.currency}, '
+                f'у транзакции - {currency}'
             )
 
     def create(self, validated_data):
@@ -153,7 +146,9 @@ class TransactionCreateUpdateSerializer(TransactionSerializer):
         transaction_type = validated_data.get('transaction_type')
         money = validated_data.get('money')
 
-        cashback_money = self.calculate_cashback_money(from_number, transaction_type, money)
+        cashback_money = self.calculate_cashback_money(
+            from_number, transaction_type, money
+        )
 
         with transaction.atomic():
             from_obj = from_number.get_related_card_or_deposit()
@@ -172,7 +167,7 @@ class TransactionCreateUpdateSerializer(TransactionSerializer):
 
     def calculate_cashback_money(self, from_number, transaction_type, money):
         from_obj = from_number.get_related_card_or_deposit()
-        
+
         if not isinstance(from_obj, Card):
             return 0
 
@@ -184,9 +179,9 @@ class TransactionCreateUpdateSerializer(TransactionSerializer):
             transaction_types = cashback.transaction_type.all()
             if transaction_type in transaction_types:
                 percent = cashback.percent if cashback.percent > percent else percent
-        
+
         return int(money * (percent / 100))
-    
+
 
 class CashbackSerializer(CustomSerializer):
     id = serializers.IntegerField(read_only=True)
@@ -204,8 +199,8 @@ class CashbackDepthSerializer(CashbackSerializer):
 
 class CashbackCreateUpdateSerializer(CashbackSerializer):
     transaction_type = CustomRelatedField(
-        model=TransactionType, 
-        many=True, 
+        model=TransactionType,
+        many=True,
         model_serializer=TransactionTypeSerializer
     )
 
@@ -240,8 +235,8 @@ class CardTypeDepthSerializer(CardTypeSerializer):
 
 class CardTypeCreateUpdateSerializer(CardTypeSerializer):
     cashbacks = CustomRelatedField(
-        model=Cashback, 
-        many=True, 
+        model=Cashback,
+        many=True,
         model_serializer=CashbackDepthSerializer
     )
 
@@ -288,9 +283,11 @@ class CardSerializer(CustomSerializer):
 
 
 class CardCreateUpdateSerializer(BankAccountSerializerMixin, CardSerializer):
-    card_type = CustomRelatedField(model=CardType, model_serializer=CardTypeDepthSerializer)
+    card_type = CustomRelatedField(
+        model=CardType, model_serializer=CardTypeDepthSerializer
+    )
     design = CustomRelatedField(model=CardDesign, model_serializer=CardDesignSerializer)
-    
+
 
 class DepositSeializer(CustomSerializer):
     id = serializers.IntegerField(read_only=True)

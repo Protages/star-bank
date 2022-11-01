@@ -18,10 +18,10 @@ from django.urls import path, include
 from django.views.generic import TemplateView
 
 from rest_framework.schemas import get_schema_view
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import AllowAny
 from rest_framework.schemas.openapi import SchemaGenerator
 
-from .views import RootAPI
+from .views import redirect_to_root, RootAPI
 
 
 class TOSSchemaGenerator(SchemaGenerator):
@@ -32,6 +32,7 @@ class TOSSchemaGenerator(SchemaGenerator):
 
 
 urlpatterns = [
+    path('', redirect_to_root),
     path('admin/', admin.site.urls),
 
     # OpenAPI schema
@@ -46,13 +47,12 @@ urlpatterns = [
     # SwaggerUI for schema
     path('swagger-ui/', TemplateView.as_view(
         template_name='swagger/swagger-ui.html',
-        extra_context={'schema_url':'openapi-schema'},
+        extra_context={'schema_url': 'openapi-schema'},
     ), name='swagger-ui'),
 
     path('__debug__/', include('debug_toolbar.urls')),
 
     path('api/v1/auth/', include('user.auth_urls')),
-    # path('api/v1/auth/', include('rest_framework.urls')),
 
     path('api/v1/', RootAPI.as_view(), name='root'),
 

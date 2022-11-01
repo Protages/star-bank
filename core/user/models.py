@@ -1,7 +1,11 @@
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.contrib.auth.models import (
+    AbstractBaseUser,
+    BaseUserManager,
+    PermissionsMixin
+)
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.auth.hashers import make_password
 
@@ -46,7 +50,10 @@ class UserManager(BaseUserManager):
 
 class AccountTarif(models.Model):
     title = models.CharField(verbose_name='Название', max_length=128)
-    monthly_price = models.PositiveIntegerField(verbose_name='Месячная плата', default=0)
+    monthly_price = models.PositiveIntegerField(
+        verbose_name='Месячная плата',
+        default=0
+    )
     transfer_limit = models.PositiveIntegerField(
         verbose_name='Лимит перевода',
         help_text='Сумма лимита перевода в месяц',
@@ -94,8 +101,14 @@ class User(AbstractBaseUser, PermissionsMixin):
         null=True,
         blank=True
     )
-    date_joined = models.DateTimeField(verbose_name='Время регистрации', default=timezone.now)
-    last_login = models.DateTimeField(verbose_name='Последний вход', blank=True, null=True)
+    date_joined = models.DateTimeField(
+        verbose_name='Время регистрации',
+        default=timezone.now
+    )
+    last_login = models.DateTimeField(
+        verbose_name='Последний вход',
+        blank=True, null=True
+    )
 
     objects = UserManager()
 

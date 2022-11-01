@@ -15,7 +15,7 @@ from user.models import AccountTarif, User
 
 
 """
-BaseSetUpMixin -> 
+BaseSetUpMixin ->
 AccountTarifSetUpMixin -> UserSetUpMixin ->
 TransactionTypeSetUpMixin -> CashbackSetUpMixin ->
 CardTypeSetUpMixin -> CardDesignSetUpMixin ->
@@ -62,7 +62,7 @@ class AccountTarifSetUpMixin(BaseSetUpMixin):
             'additional_interest_rate': 10.0
         }
         self.account_tarif_invalid_data_1 = {
-            'title': 'abcd'*50,  # invalid
+            'title': 'abcd' * 50,  # invalid
             'monthly_price': -100,  # invalid
             'transfer_limit': -100000,  # invalid
             'free_card_maintenance': 123,  # invalid
@@ -94,7 +94,7 @@ class UserSetUpMixin(AccountTarifSetUpMixin):
             tarif=self.account_tarif_2
         )
 
-        try:  # Token Authenfication for APITestCase 
+        try:  # Token Authenfication for APITestCase
             token = Token.objects.get(user=self.user_1)
             self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
         except:
@@ -126,7 +126,7 @@ class UserSetUpMixin(AccountTarifSetUpMixin):
             'tarif': [self.account_tarif_1.pk, self.account_tarif_2.pk]  # invalid
         }
         self.user_invalid_data_2 = {
-            'username': 'abcd'*50,  # invalid
+            'username': 'abcd' * 50,  # invalid
             'email': '@gmail.com',  # invalid
             'phone': '+79000000011111111',  # invalid
             'password': 'abc',  # invalid
@@ -151,7 +151,7 @@ class TransactionTypeSetUpMixin(UserSetUpMixin):
             'title': 'Transaction type 999'
         }
         self.transaction_type_invalid_data_1 = {
-            'title': 'abcd'*50  # invalid
+            'title': 'abcd' * 50  # invalid
         }
 
 
@@ -178,7 +178,7 @@ class CashbackSetUpMixin(TransactionTypeSetUpMixin):
             'transaction_type': [self.transaction_type_1.pk]
         }
         self.cashback_invalid_data_1 = {
-            'title': 'abcd'*50,  # invalid
+            'title': 'abcd' * 50,  # invalid
             'percent': -10,  # invalid
             'transaction_type': self.transaction_type_1.pk  # invalid
         }
@@ -222,7 +222,7 @@ class CardTypeSetUpMixin(CashbackSetUpMixin):
             'cashbacks': [self.cashback_1.pk]
         }
         self.card_type_invalid_data_1 = {
-            'title': 'abcd'*50,  # invalid
+            'title': 'abcd' * 50,  # invalid
             'push_price': -100,  # invalid
             'service_price': -100,  # invalid
             'cashbacks': self.cashback_1.pk  # invalid
@@ -255,20 +255,20 @@ class CardDesignSetUpMixin(CardTypeSetUpMixin):
         self.card_design_valid_data = {
             'title': 'Card desing 11',
             'author': 'Author 1',
-            'description': 'abcd'*50,
+            'description': 'abcd' * 50,
             'example': 'Example 1'
         }
         self.card_design_update_data = {
             'title': 'Card desing 99',
             'author': 'Author 99',
-            'description': 'aaa'*50,
+            'description': 'aaa' * 50,
             'example': 'Example 99'
         }
         self.card_design_invalid_data_1 = {
-            'title': 'abcd'*50,  # invalid
-            'author': 'abcd'*50,  # invalid
+            'title': 'abcd' * 50,  # invalid
+            'author': 'abcd' * 50,  # invalid
             'description': 123,
-            'example': 'abcd'*50  # invalid
+            'example': 'abcd' * 50  # invalid
         }
 
 
@@ -310,7 +310,7 @@ class BankAccountSetUpMixin(CardDesignSetUpMixin):
         self.bank_account_invalid_data_1 = {
             'number': '00000000000000000022',  # invalid uniqe
             'user': [self.user_1.pk, self.user_2.pk],  # invalid
-            'bank_name': 'abcd'*50  # invalid
+            'bank_name': 'abcd' * 50  # invalid
         }
 
 
@@ -358,7 +358,7 @@ class CardSetUpMixin(BankAccountSetUpMixin):
         self.card_invalid_data_1 = {
             'number': '00000000000000000011',  # invalid uniqe
             'user': [self.user_1.pk, self.user_2.pk],  # invalid
-            'bank_name': 'abcd'*50,  # invalid
+            'bank_name': 'abcd' * 50,  # invalid
             'currency': 'GB',  # invalid
             'money': 'abcd',  # invalid
             'card_type': [self.card_type_1.pk, self.card_type_2.pk],  # invalid
@@ -411,7 +411,7 @@ class DepositSetUpMixin(CardSetUpMixin):
         self.deposit_invalid_data_1 = {
             'number': '00000000000000000011',  # invalid uniqe
             'user': [self.user_1.pk, self.user_2.pk],  # invalid
-            'bank_name': 'abcd'*50,  # invalid
+            'bank_name': 'abcd' * 50,  # invalid
             'currency': 'GB',  # invalid
             'money': 'abcd',  # invalid
             'interest_rate': -10.0,  # invalid
@@ -421,7 +421,7 @@ class DepositSetUpMixin(CardSetUpMixin):
         self.deposit_invalid_data_2 = {
             'number': '0000000111',  # invalid
             'user': 20,  # invalid
-            'bank_name': 'abcd'*50,  # invalid
+            'bank_name': 'abcd' * 50,  # invalid
             'currency': 'GB',  # invalid
             'money': 'abcd',  # invalid
             'interest_rate': -1.0,  # invalid
@@ -468,7 +468,9 @@ class TransactionSetUpMixin(DepositSetUpMixin):
             'to_number': [self.bank_account_2.pk, self.bank_account_4.pk],  # invalid
             'money': -1000,  # invalid
             'currency': 'GB',  # invalid
-            'transaction_type': [self.transaction_type_1.pk, self.transaction_type_2.pk]  # invalid
+            'transaction_type': [
+                self.transaction_type_1.pk, self.transaction_type_2.pk
+            ]  # invalid
         }
         self.transaction_invalid_data_2 = {
             'from_number': self.bank_account_1.pk,

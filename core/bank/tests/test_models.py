@@ -10,7 +10,18 @@ from bank.models import (
     Card,
     Deposit,
 )
-from .model_mixins import *
+from .model_mixins import (
+    AccountTarifSetUpMixin,
+    UserSetUpMixin,
+    TransactionTypeSetUpMixin,
+    CashbackSetUpMixin,
+    CardTypeSetUpMixin,
+    CardDesignSetUpMixin,
+    BankAccountSetUpMixin,
+    CardSetUpMixin,
+    DepositSetUpMixin,
+    TransactionSetUpMixin,
+)
 
 
 class AccountTarifTest(AccountTarifSetUpMixin, TestCase):
@@ -40,7 +51,7 @@ class TransactionTypeTest(TransactionTypeSetUpMixin, TestCase):
         self.assertEqual(transaction_type_1.title, 'Transaction type 1')
         self.assertEqual(transaction_type_2.title, 'Transaction type 2')
 
-    
+
 class CashbackTest(CashbackSetUpMixin, TestCase):
     def test_cashback(self):
         cashback_1 = Cashback.objects.get(pk=1)

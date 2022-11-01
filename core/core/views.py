@@ -1,7 +1,12 @@
 from django.urls import reverse
+from django.shortcuts import redirect
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+
+def redirect_to_root(request):
+    return redirect('root')
 
 
 class RootAPI(APIView):
