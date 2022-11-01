@@ -150,13 +150,13 @@ class CardDesign(models.Model):
     author = models.CharField(
         verbose_name='автор',
         max_length=128,
-        blank=True,
+        blank=True, default=''
     )
-    description = models.TextField(verbose_name='описание', blank=True)
+    description = models.TextField(verbose_name='описание', blank=True, default='')
     example = models.CharField(
         verbose_name='пример',
         max_length=128,
-        blank=True,
+        blank=True, default=''
     )
 
     class Meta:
